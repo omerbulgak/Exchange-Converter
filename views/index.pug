@@ -1,0 +1,36 @@
+extends layout
+
+block content
+  .row.mt-5.mx-4
+    .col-md-8.col-sm-12
+      .card
+        .card-header Exchange Converter
+        .card-body
+          form#calculator.row.g-4
+            .col-md-4.col-sm-12
+              label(for='base-currency') Base Currency
+              select#base-currency.form-select
+                option(value='-1' selected) Please select
+                option(value='USD') USD
+                option(value='EUR') EUR
+                option(value='GBP') GBP
+                option(value='ILS') ILS
+            .col-md-4.col-sm-12
+              label(for='quote-currency') Quate Currency
+              select#quote-currency.form-select
+                option(value='-1' selected) Please select
+                option(value='USD') USD
+                option(value='EUR') EUR
+                option(value='GBP') GBP
+                option(value='ILS') ILS
+            .col-md-4.col-sm-12
+              label(for='amount') Amount (cents)
+              input#amount.form-control(type='number')
+            .d-grid.gap-2.col-md-8.col-sm-12.mx-auto
+              button.btn.btn-outline-primary(type='submit') Convert
+  #result.row.mt-5.mx-4.d-none
+    .col-md-8.col-sm-12
+      .card
+        .card-header
+        .card-body
+          .row.g-4

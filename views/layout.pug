@@ -1,0 +1,132 @@
+doctype html
+html(lang='en')
+  head
+    title= title
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css' integrity='sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU' crossorigin='anonymous')
+    //link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    block content
+    script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js' integrity='sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ' crossorigin='anonymous')
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js')
+
+    script(type='text/javascript').
+      $(function () {
+        $('form#calculator').on('submit', e => {
+          e.preventDefault();
+
+          const baseCurrency = getOptionValue('base-currency');
+          const quateCurrency = getOptionValue('quote-currency');
+          const amount = +$('#amount').val();
+          const data = {
+            baseCurrency: getOptionValue('base-currency'),
+            quateCurrency: getOptionValue('quote-currency'),
+            amount: +$('#amount').val()
+          }
+
+          const result = $('#result');
+          const row = $('.card-body .row.g-4', result);
+
+          const validationResult = validate(baseCurrency, quateCurrency, amount);
+
+          constructResultSkeleton(result, row);
+          setValidationMessages(result, row, validationResult);
+          if (validationResult.length > 0) {
+            return;
+          }
+
+
+          $.post('', data)
+            .done(function (response) {
+              setExchangeInfo(row, response.formattedInfo, response.expectedAmount, response.conversationRate);
+            })
+            .fail(function (xhr) {
+              // console.log('ui err', xhr.responseJSON);
+              setValidationMessages(result, row, xhr.responseJSON.errors);
+            });
+
+
+          function getOptionValue(id) {
+            return $(`#${id} option:selected`).val();
+          }
+
+          function validate(baseCurrency, quateCurrency, amount) {
+            const validationErrors = [];
+
+            if (+baseCurrency === -1) {
+              validationErrors.push({message: 'Please select base currency'});
+            }
+
+            if (+quateCurrency === -1) {
+              validationErrors.push({message: 'Please select quote currency'});
+            }
+
+            if (+amount === 0) {
+              validationErrors.push({message: 'Invalid amount'});
+            }
+
+            return validationErrors;
+          }
+
+          function constructResultSkeleton(result, row) {
+            result.removeClass('d-none');
+            row.empty();
+          }
+
+          function setValidationMessages(result, resultRow, validationResult) {
+            if (validationResult.length === 0) {
+              return;
+            }
+
+            $('.card-header', result).text('Validation Error');
+
+            const br = $('</br>')[0].outerHTML;
+            const column = $('<div>').addClass('col-md-12');
+            resultRow.append(column);
+
+
+            validationResult.forEach(validation => {
+              const label = $('<label>').text(validation.message)[0].outerHTML;
+              column.append(label);
+              column.append(br);
+            });
+          }
+
+          function setExchangeInfo(resultRow, formatted, expectedAmount, conversionRate) {
+            const label = $('<label>').addClass('col-6');
+
+            const elements = [
+              {
+                type: 'expectedAmount',
+                caption: label
+                  .clone()
+                  .text('Expected Amount')[0].outerHTML,
+                value: label
+                  .clone()
+                  .text(expectedAmount)[0].outerHTML
+              },
+              {
+                type: 'conversionRate',
+                caption: label
+                  .clone()
+                  .text('Conversion Rate')[0].outerHTML,
+                value: label
+                  .clone()
+                  .text(conversionRate)[0].outerHTML
+              }
+            ]
+
+
+            $('.card-header', result).text(`Result -> ${formatted}`);
+            const column = $('<div>').addClass('col-md-6 col-sm-12');
+
+            elements.forEach(element => {
+              const clonedColumn = column.clone();
+              resultRow.append(clonedColumn);
+              clonedColumn.append(element.caption);
+              clonedColumn.append(element.value);
+            });
+          }
+
+
+        });
+      });
